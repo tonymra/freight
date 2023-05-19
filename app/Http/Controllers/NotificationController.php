@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderInternal;
 use App\Models\Order;
+use App\Models\User;
 use App\Notifications\PaymentRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Notifications\Notifiable;
 
 class NotificationController extends Controller
@@ -20,22 +23,36 @@ class NotificationController extends Controller
     public function sendNotification()
     {
         $orderDetail = Order::where('freight_payer_self',0)->first();
-        $contractStatus = $orderDetail->freight_payer_self === '1' ? "INTERNAL":"CUSTOMER";
+        if($orderDetail) {
+            $contractStatus = $orderDetail->freight_payer_self === '1' ? "INTERNAL" : "CUSTOMER";
+            $order = [
+                'greeting' => 'Good day,',
+                'heading' => 'Order Properties.',
+                'bl_release_date' => 'Date: ' . $orderDetail->bl_release_date,
+                'bl_user' => 'User: ' . $orderDetail->user->name,
+                'freight_payer_self' => 'Contract Status: ' . $contractStatus,
+                'contract_number' => 'Contract No: ' . $orderDetail->contract_number,
+                'bl_number' => 'BL No: ' . $orderDetail->bl_number
+            ];
+            $this->email = 'info@you-source.co.za';
+            $this->notify(new PaymentRequest($order));
 
-        $order = [
-            'greeting' => 'Good day,',
-            'heading' => 'Order Properties.',
-            'bl_release_date' => 'Date: '.$orderDetail->bl_release_date,
-            'bl_user' => 'User: '.$orderDetail->user->name,
-            'freight_payer_self' => 'Contract Status: '.$contractStatus,
-            'contract_number' => 'Contract No: '.$orderDetail->contract_number,
-            'bl_number' => 'BL No: '.$orderDetail->bl_number
-        ];
+            dd('Order notification completed!');
+        }
+        dd('There are no internal contracts found!');
+    }
 
-        $this->email = 'info@you-source.co.za'; // Assign the email address to the $email property
+    public function testEvent(){
 
-        $this->notify(new PaymentRequest($order));
+        $user = User::factory()->create();
+        $order = Order::factory()->create([
+            'bl_release_user_id' => $user->id,
+            'freight_payer_self' => false,
+        ]);
 
-        dd('Order completed!');
+        // Dispatch the event
+        event(new OrderInternal($order));
+
+        dd('Order ID#: '.$order->id.' event and listener dispatched!');
     }
 }

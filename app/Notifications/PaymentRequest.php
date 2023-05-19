@@ -44,13 +44,13 @@ class PaymentRequest extends Notification
     {
         return (new MailMessage)
             ->subject('Bill of Lading')
+            ->greeting('Good day,')
             ->line($this->order['heading'])
             ->line($this->order['bl_release_date'])
             ->line($this->order['bl_user'])
             ->line($this->order['freight_payer_self'])
             ->line($this->order['contract_number'])
-            ->line($this->order['bl_number'])
-            ->line('Thank you !');
+            ->line($this->order['bl_number']);
     }
 
     /**
