@@ -19,22 +19,28 @@ Update database and email settings
 
 php artisan key:generate
 
-5.	Run the database migrations and seeders (Set the database connection in .env before migrating)
+5.	Update QUEUE_CONNECTION in your .env
+
+QUEUE_CONNECTION=database
+
+6.	Run the database migrations and seeders (Set the database connection in .env before migrating)
 
 php artisan migrate:fresh --seed
 
-6.	Start the local development server
+7.	Start the local development server
 
 php artisan serve
 
 You can now access the server at http://127.0.0.1:8000
 
-7.	To test the PaymentRequest notification 
+8.	To test the PaymentRequest notification only
 
 http://127.0.0.1:8000/send-notification 
 
-8.	To test the event and listener 
+9.	To test the event and queued listener  
 
-http://127.0.0.1:8000/test-event
+- http://127.0.0.1:8000/test-event .  A job will be added to the database
+
+- To test the queue worker which will eventually send the notification after excuting the job, run php artisan queue:work
 
 
