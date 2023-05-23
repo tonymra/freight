@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Listeners;
 
 use App\Events\OrderInternal;
@@ -8,12 +7,21 @@ use App\Notifications\PaymentRequest;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
-class PaymentRequestNotification
+class PaymentRequestNotification implements ShouldQueue
 {
-    use Notifiable;
+    use Notifiable, InteractsWithQueue;
+
+    /**
+     * The number of times the queued listener may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 5;
 
     public $email;
+
     /**
      * Create the event listener.
      *
@@ -34,7 +42,7 @@ class PaymentRequestNotification
     {
         $order = $event->order;
 
-        if ($order->freight_payer_self === false) {
+        if (!$order->freight_payer_self) {
             $orderNotification = [
                 'heading' => 'Order Properties.',
                 'bl_release_date' => 'Date: ' . $order->bl_release_date,
@@ -47,6 +55,6 @@ class PaymentRequestNotification
             $this->email = 'info@you-source.co.za';
             $this->notify(new PaymentRequest($orderNotification));
         }
-
     }
 }
+
